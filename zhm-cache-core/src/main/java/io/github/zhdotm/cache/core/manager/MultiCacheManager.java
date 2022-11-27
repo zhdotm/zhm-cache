@@ -16,44 +16,36 @@ import java.util.stream.Collectors;
 
 public class MultiCacheManager implements CacheManager {
 
-    Map<String, SortedCacheManager> cacheManagerMap = new ConcurrentHashMap<>(16);
-
+    List<SortedCacheManager> innerCacheManagers;
+    Map<String, Cache> cacheMap = new ConcurrentHashMap<>(16);
 
     public MultiCacheManager(SortedCacheManager... sortedCacheManagers) {
-        for (SortedCacheManager sortedCacheManager : sortedCacheManagers) {
-            cacheManagerMap.put(sortedCacheManager.getName(), sortedCacheManager);
-        }
+        innerCacheManagers = Arrays
+                .stream(sortedCacheManagers)
+                .sorted(Comparator.comparingInt(SortedCacheManager::getSort))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Cache getCache(String name) {
 
-        MultiCache multiCache = new MultiCache();
-        cacheManagerMap
-                .entrySet()
-                .stream()
-                .filter(entry -> Objects.nonNull(entry.getValue().getCache(name)))
-                .forEach(entry -> {
-                    SortedCacheManager value = entry.getValue();
-                    multiCache.addInnerCache(value.getSort(), value.getCache(name));
-                });
-
-        return multiCache.hasInnerCaches() ? multiCache : null;
+        return this.cacheMap.computeIfAbsent(name, (cacheName) -> {
+            MultiCache multiCache = new MultiCache(cacheName);
+            for (SortedCacheManager innerCacheManager : innerCacheManagers) {
+                Cache cache = innerCacheManager.getCache(cacheName);
+                if (Objects.nonNull(cache)) {
+                    multiCache.addInnerCache(innerCacheManager.getSort(), innerCacheManager.getName(), cache);
+                }
+            }
+            
+            return multiCache.hasInnerCaches() ? multiCache : null;
+        });
     }
 
     @Override
     public Collection<String> getCacheNames() {
-        List<String> cacheNames = new ArrayList<>();
 
-        for (Map.Entry<String, SortedCacheManager> entry : cacheManagerMap.entrySet()) {
-            Collection<String> cacheNamesTemp = entry.getValue().getCacheNames();
-            cacheNames.addAll(cacheNamesTemp);
-        }
-
-        return cacheNames
-                .stream()
-                .distinct()
-                .collect(Collectors.toList());
+        return Collections.unmodifiableSet(this.cacheMap.keySet());
     }
 
 }

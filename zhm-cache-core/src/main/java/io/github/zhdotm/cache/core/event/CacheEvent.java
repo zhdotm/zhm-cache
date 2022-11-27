@@ -1,15 +1,17 @@
 package io.github.zhdotm.cache.core.event;
 
-import org.springframework.context.ApplicationEvent;
-
 /**
+ * 缓存事件
+ *
  * @author zhihao.mao
  */
 
-public abstract class CacheEvent extends ApplicationEvent {
+public interface CacheEvent {
 
-    public CacheEvent(Object source) {
-        super(source);
-    }
-
+    /**
+     * 获取事件名称
+     *
+     * @return 事件名称
+     */
+    String getEventName();
 }

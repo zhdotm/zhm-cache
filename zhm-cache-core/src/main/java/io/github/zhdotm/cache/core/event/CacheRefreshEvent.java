@@ -1,8 +1,7 @@
 package io.github.zhdotm.cache.core.event;
 
 import lombok.Getter;
-
-import java.util.Map;
+import lombok.ToString;
 
 /**
  * 缓存刷新缓存事件
@@ -10,7 +9,11 @@ import java.util.Map;
  * @author zhihao.mao
  */
 
-public class CacheRefreshEvent extends CacheEvent {
+@ToString
+public class CacheRefreshEvent implements CacheEvent {
+
+    @Getter
+    private final String eventName = "cacheRefreshEvent";
 
     @Getter
     private final String cacheName;
@@ -21,11 +24,10 @@ public class CacheRefreshEvent extends CacheEvent {
     @Getter
     private final Object value;
 
-    public CacheRefreshEvent(Map<String, Object> source) {
-        super(source);
-        this.cacheName = (String) source.get("cacheName");
-        this.key = source.get("key");
-        this.value = source.get("value");
+    public CacheRefreshEvent(String cacheName, Object key, Object value) {
+        this.cacheName = cacheName;
+        this.key = key;
+        this.value = value;
     }
 
 }

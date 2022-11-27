@@ -1,8 +1,7 @@
 package io.github.zhdotm.cache.core.event;
 
 import lombok.Getter;
-
-import java.util.Map;
+import lombok.ToString;
 
 /**
  * 缓存驱逐事件
@@ -10,7 +9,11 @@ import java.util.Map;
  * @author zhihao.mao
  */
 
-public class CacheEvictEvent extends CacheEvent {
+@ToString
+public class CacheEvictEvent implements CacheEvent {
+
+    @Getter
+    private final String eventName = "cacheEvictEvent";
 
     @Getter
     private final String cacheName;
@@ -18,9 +21,9 @@ public class CacheEvictEvent extends CacheEvent {
     @Getter
     private final Object key;
 
-    public CacheEvictEvent(Map<String, Object> source) {
-        super(source);
-        this.cacheName = (String) source.get("cacheName");
-        this.key = source.get("key");
+    public CacheEvictEvent(String cacheName, Object key) {
+        this.cacheName = cacheName;
+        this.key = key;
     }
+
 }

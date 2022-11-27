@@ -1,9 +1,13 @@
 package io.github.zhdotm.cache.core.support;
 
 import io.github.zhdotm.cache.core.event.CacheEvent;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import io.github.zhdotm.cache.core.spi.CacheEventListener;
+import io.github.zhdotm.cache.core.spi.impl.MultiCacheEventListenerImpl;
+import io.github.zhdotm.cache.core.util.SpringUtil;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.ServiceLoader;
 
 /**
  * 混合缓存支持
@@ -11,17 +15,38 @@ import org.springframework.context.ApplicationContextAware;
  * @author zhihao.mao
  */
 
-public class MultiCacheSupport implements ApplicationContextAware {
+public class MultiCacheSupport {
 
-    private static ApplicationContext applicationContext;
+    private static MultiCacheSupport multiCacheSupport;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        MultiCacheSupport.applicationContext = applicationContext;
+    private List<CacheEventListener> cacheEventListeners;
+
+    public static synchronized MultiCacheSupport getInstance() {
+        if (Objects.isNull(multiCacheSupport)) {
+            multiCacheSupport = new MultiCacheSupport();
+            multiCacheSupport.init();
+        }
+
+        return multiCacheSupport;
     }
 
-    public static void publishCacheEvent(CacheEvent cacheEvent) {
-        applicationContext.publishEvent(cacheEvent);
+    public void publishCacheEvent(CacheEvent cacheEvent) {
+        if (Objects.isNull(cacheEventListeners) || cacheEventListeners.size() == 0) {
+            init();
+        }
+        for (CacheEventListener cacheEventListener : cacheEventListeners) {
+            cacheEventListener.onEvent(cacheEvent);
+        }
+    }
+
+    private void init() {
+        MultiCacheEventListenerImpl multiCacheEventListener = new MultiCacheEventListenerImpl();
+        SpringUtil.registerSingleton(multiCacheEventListener.getName(), multiCacheEventListener);
+        cacheEventListeners.add(multiCacheEventListener);
+        ServiceLoader<CacheEventListener> serviceLoader = ServiceLoader.load(CacheEventListener.class);
+        for (CacheEventListener cacheEventListener : serviceLoader) {
+            cacheEventListeners.add(cacheEventListener);
+        }
     }
 
 }

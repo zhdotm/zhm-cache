@@ -1,6 +1,5 @@
 package io.github.zhdotm.cache.core.cache;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
@@ -14,25 +13,37 @@ import java.util.concurrent.Callable;
  */
 
 @Slf4j
-@AllArgsConstructor
 public class SortedCache implements Cache {
 
     @Getter
     private final Integer sort;
 
     @Getter
+    private final String cacheManagerName;
+
+    @Getter
+    private final String cacheName;
+
+    @Getter
     private final Cache cache;
+
+    public SortedCache(Integer sort, String cacheManagerName, Cache cache) {
+        this.sort = sort;
+        this.cacheManagerName = cacheManagerName;
+        this.cacheName = cache.getName();
+        this.cache = cache;
+    }
 
     @Override
     public String getName() {
 
-        return cache.getName();
+        return cacheName;
     }
 
     @Override
     public Object getNativeCache() {
 
-        return cache.getNativeCache();
+        return this;
     }
 
     @Override
@@ -70,5 +81,5 @@ public class SortedCache implements Cache {
 
         cache.clear();
     }
-    
+
 }
