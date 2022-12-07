@@ -8,8 +8,7 @@
     <artifactId>zhm-cache</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>zhm-cache-core</module>
-        <module>zhm-cache-example</module>
+        <module>zhm-cache-starter-multi</module>
     </modules>
     <packaging>pom</packaging>
 
